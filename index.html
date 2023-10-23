@@ -10,7 +10,10 @@
       <div
         class="buttons"
         style="position: absolute; top: 10px; right: 10px; z-index: 1"
-      ></div>
+      >
+        <button id="draw">Start Drawing</button>
+        <button id="formatter">Clear Formatter</button>
+      </div>
     </div>
 
     <script type="module">
@@ -20,43 +23,65 @@
         W3CImageFormat,
       } from "./annotorious-openseadragon-3-0-0-pre-alpha-51.js";
 
-      var viewer = OpenSeadragon({
-        id: "osd",
-        prefixUrl: "images/",
-        // tileSources: "test/test.dzi",
-      });
+      window.onload = function () {
+        var viewer = OpenSeadragon({
+          id: "osd",
+          prefixUrl: "images/",
+          crossOriginPolicy: "Anonymous",
+        });
 
-      viewer.open(
-        "https://iiif.archive.org/image/iiif/3/wholeearthcatalo00unse_1%2fwholeearthcatalo00unse_1_jp2.zip%2fwholeearthcatalo00unse_1_jp2%2fwholeearthcatalo00unse_1_0001.jp2/info.json"
-      );
+        viewer.open(
+          "https://iiif.archive.org/image/iiif/3/wholeearthcatalo00unse_1%2fwholeearthcatalo00unse_1_jp2.zip%2fwholeearthcatalo00unse_1_jp2%2fwholeearthcatalo00unse_1_0001.jp2/info.json"
+        );
 
-      var anno = createOSDAnnotator(viewer, {
-        adapter: W3CImageFormat(
-          "https://iiif.archive.org/image/iiif/3/wholeearthcatalo00unse_1%2fwholeearthcatalo00unse_1_jp2.zip%2fwholeearthcatalo00unse_1_jp2%2fwholeearthcatalo00unse_1_0001.jp2"
-        ),
-      });
+        var anno = createOSDAnnotator(viewer, {
+          adapter: W3CImageFormat(
+            "https://iiif.archive.org/image/iiif/3/wholeearthcatalo00unse_1%2fwholeearthcatalo00unse_1_jp2.zip%2fwholeearthcatalo00unse_1_jp2%2fwholeearthcatalo00unse_1_0001.jp2"
+          ),
+        });
 
-      var colors = [0x1a73e8, 0xe81a1e, 0x34e81a, 0xa1570c];
-      var counter = -1;
-      anno.setFormatter((annotation) => {
-        counter = counter + 1;
-        return {
-          fill: colors[counter % colors.length],
-          fillOpacity: 0.25,
-        };
-      });
+        var colors = [0x1a73e8, 0xe81a1e, 0x34e81a, 0xa1570c];
+        var counter = -1;
+        anno.setFormatter((annotation) => {
+          counter = counter + 1;
+          return {
+            fill: colors[counter % colors.length],
+            fillOpacity: 0.25,
+          };
+        });
 
-      anno.startDrawing("rectangle", true);
+        const trigger = document.getElementById("draw");
+        trigger.addEventListener("click", function () {
+          const enabled = trigger.dataset.enabled;
 
-      anno.on("clickAnnotation", (a) => console.log("clicked", a));
-      anno.on("createAnnotation", (a) => console.log("created", a));
-      anno.on("deleteAnnotation", (a) => console.log("deleted", a));
-      anno.on("selectionChanged", (selected) =>
-        console.log("selection", selected)
-      );
-      anno.on("updateAnnotation", (a, previous) =>
-        console.log("updated", previous, "with", a)
-      );
+          if (enabled) {
+            anno.stopDrawing();
+            delete trigger.dataset.enabled;
+            trigger.innerHTML = "Start Drawing";
+          } else {
+            anno.startDrawing("rectangle", true);
+            trigger.dataset.enabled = "true";
+            trigger.innerHTML = "Stop Drawing";
+          }
+        });
+
+        const formatter = document.getElementById("formatter");
+        formatter.addEventListener("click", function () {
+          anno.setFormatter();
+        });
+
+        // anno.startDrawing("rectangle", true);
+
+        anno.on("clickAnnotation", (a) => console.log("clicked", a));
+        anno.on("createAnnotation", (a) => console.log("created", a));
+        anno.on("deleteAnnotation", (a) => console.log("deleted", a));
+        anno.on("selectionChanged", (selected) =>
+          console.log("selection", selected)
+        );
+        anno.on("updateAnnotation", (a, previous) =>
+          console.log("updated", previous, "with", a)
+        );
+      };
     </script>
   </body>
 </html>
