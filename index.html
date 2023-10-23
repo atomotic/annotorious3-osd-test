@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>anno3</title>
+  </head>
+  <body>
+    <div id="osd" style="width: 1800px; height: 1600px">
+      <div
+        class="buttons"
+        style="position: absolute; top: 10px; right: 10px; z-index: 1"
+      ></div>
+    </div>
+
+    <script type="module">
+      import OpenSeadragon from "./openseadragon-4-1-0.js";
+      import {
+        createOSDAnnotator,
+        W3CImageFormat,
+      } from "./annotorious-openseadragon-3-0-0-pre-alpha-51.js";
+
+      var viewer = OpenSeadragon({
+        id: "osd",
+        prefixUrl: "images/",
+        // tileSources: "test/test.dzi",
+      });
+
+      viewer.open(
+        "https://iiif.archive.org/image/iiif/3/wholeearthcatalo00unse_1%2fwholeearthcatalo00unse_1_jp2.zip%2fwholeearthcatalo00unse_1_jp2%2fwholeearthcatalo00unse_1_0001.jp2/info.json"
+      );
+
+      var anno = createOSDAnnotator(viewer, {
+        adapter: W3CImageFormat(
+          "https://iiif.archive.org/image/iiif/3/wholeearthcatalo00unse_1%2fwholeearthcatalo00unse_1_jp2.zip%2fwholeearthcatalo00unse_1_jp2%2fwholeearthcatalo00unse_1_0001.jp2"
+        ),
+      });
+
+      var colors = [0x1a73e8, 0xe81a1e, 0x34e81a, 0xa1570c];
+      var counter = -1;
+      anno.setFormatter((annotation) => {
+        counter = counter + 1;
+        return {
+          fill: colors[counter % colors.length],
+          fillOpacity: 0.25,
+        };
+      });
+
+      anno.startDrawing("rectangle", true);
+
+      anno.on("clickAnnotation", (a) => console.log("clicked", a));
+      anno.on("createAnnotation", (a) => console.log("created", a));
+      anno.on("deleteAnnotation", (a) => console.log("deleted", a));
+      anno.on("selectionChanged", (selected) =>
+        console.log("selection", selected)
+      );
+      anno.on("updateAnnotation", (a, previous) =>
+        console.log("updated", previous, "with", a)
+      );
+    </script>
+  </body>
+</html>
